@@ -105,7 +105,7 @@ SEQUENCE isApproaching USING direction AND floor
         ' if going down, want elevator floor to be > passenger floor.'
         ' if going up, want elevator floor to be < passenger floor. '
 
-        IF (elevator direction EQUAL movingUp && elevator position <= floor ) OR ( elevator direction EQUAL movingDown && elevator position >= floor) THEN
+        IF (elevator direction EQUAL movingUp AND elevator position < or = floor ) OR ( elevator direction EQUAL movingDown AND elevator position > or = floor) THEN
         RETURN TRUE
         ELSE RETURN FALSE
         ENDIF
@@ -143,7 +143,7 @@ SEQUENCE elevatorOpenDoor
             SET chrono To zero
 
             DO 
-                SET elevator.door TO open
+                SET elevator door TO open
             while chrono < openDoorDelay
 
             CALL elevatorCloseDoor
@@ -155,7 +155,7 @@ SEQUENCE elevatorCloseDoor
          
         IF elevator.door EQUAL open AND entryIsClear EQUAL TRUE AND checkWeightCapacity EQUAL TRUE
                  
-            SET elevator.door TO CLOSE
+            SET elevator door TO CLOSE
                 
         ENDIF 
        
@@ -167,7 +167,7 @@ END SEQUENCE
 
 SEQUENCE setElevatorStatus USING elevator AND status
          
-        SET elevator.status TO status
+        SET elevator status TO status
 
   END FOR       
 END SEQUENCE
@@ -182,7 +182,8 @@ SEQUENCE floorCallListner
                 FOR EACH button IN FloorButtonList
                     IF button is pressed 
                         ' two information in the buton object : index and label (UP or Down)'
-                        ADD TO requestList With button index AND button label        
+                        ADD TO requestListFloor With button index AND button label 
+                        CALL sortList WITH requestListFLoor       
                     END IF
                 END FOR
 
@@ -191,17 +192,35 @@ SEQUENCE floorCallListner
         
 END SEQUENCE
 
-=======  { Manage requestList (floor) } ======= 
-
-SEQUENCE manageRequestList with requestList
+=======  { Manage requestListFloor  } ======= 
+SEQUENCE manageRequestListFloor with requestListLanding
          
         WHILE TRUE           'runing in background '
              
-                FOR EACH request IN requestList
+                FOR EACH request IN requestListFloor    'request inherit the buton value index and label'
 
                     SET elevator =  CALL requestElevator  WITH request index AND request direction
                     CALL moveElevator WITH elevator AND request index AND request direction
-                    UPDATE requestList
+                    UPDATE requestListLanding
+                END FOR
+
+        END WHILE
+
+        
+END SEQUENCE
+
+
+
+=======  { Manage requestListLanding  } ======= 
+
+SEQUENCE manageRequestListLanding with requestListLanding
+         
+        WHILE TRUE           'runing in background '
+             
+                FOR EACH request IN requestListLanding    'request inherit the buton value index and label'
+
+                    CALL moveElevator WITH elevator AND request index AND request direction
+                   
                 END FOR
 
         END WHILE
