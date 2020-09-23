@@ -1,0 +1,209 @@
+/* 
+/*========================== The residential controller ================================
+/*                       -Objects that need to be controlled:
+/*                  1. Column (one)
+/*                  2. Elevators (2) (10 Floors)
+/*                  3. Call buttons
+/*                  4. Doors
+/*                  5. Floor request buttons
+/*
+/*                   Author: Saad Eddine 
+/*
+/*    =======================================================================================      
+
+/*                           =======  { DEFINE ALGORITHM VARIABLES } ======= 
+
+DEFINE COLUMN USING id AND numberOfFloor AND numberOfElevator
+
+    ID : id
+    STATUS: status
+    NUMBEROFFLOOR: numberOfFloor
+    Elevators: SET to empty list of elevator                      
+    SEQUENCE createElevators USING numberOfElevator   
+            SET index to 1
+            SET defaultFloor to 1
+            SET maxCharge TO 800    ' Example 800kg'
+            FOR EACH numberOfElevator
+                ADD ( NEW elevator WITH index AND  defaultFloor AND IDLE AND maxCharge)   TO Elevators       
+            END FOR
+    END SEQUENCE
+    SEQUENCE createFloorButtonList USING numberOfFloor
+        SET first button in FloorButtonList TO "UP" 
+        SET last button in FloorButtonList TO "DOWN"
+        SET index to numberOfFloor - 1
+        
+        WHILE index > 1                                 'for the same floor: index we have two button'
+         repeat  
+         ADD NEW Button  with index AND "UP" TO FloorButtonList 
+         ADD NEW Button  with index AND "Down" TO FloorButtonList 
+        END WHILE 
+
+    END SEQUENCE 
+ END DEFINE   
+
+DEFINE elevator USING id AND floorPosition AND status AND weightMax
+
+    ID : id
+    STATUS: status
+    Position: floorPosition
+    weightMax: weightMax    'charge maximal'
+    door: SET TO close      'default is close'
+    
+    weightSensor            'return weight of passengers' 
+    openDoorDelay           'define the delay to keep door open'
+    elevatorPanelButtonList     
+
+ END DEFINE   
+
+
+/*                       
+
+ =======  { requestElevator : Find the closest in the same direction else send IDLE } ======= 
+
+SEQUENCE requestElevator  USING floorCallButton AND direction                     
+         
+    SET bestFit = NULL
+    SET closestElevator = 1        'Default '
+    FOR EACH column IN columns                                    
+        FOR EACH elevator IN elevators 
+            CALL isApproaching()  WITH elevator.direction AND floorCallButton RETURNING Boolean 
+            CALL isSameDirection()  WITH elevator.direction AND direction RETURNING Boolean
+            IF isApproaching EQUAL TRUE && sameDirection EQUAL TRUE && (bestFit EQUAL NULL || getDistance()  WITH elevator < getDistance()  WITH bestFit) 
+                THEN
+                SET bestFit TO elevator
+            END IF
+
+            'if we dont have bestFit GET THE NEAREST IDLE'
+
+            IF elevator.direction EQUAL IDLE and getDistance  WITH closestElevator > getDistance WITH elevator THEN
+                SET closestElevator TO elevator.index
+            END IF
+
+
+        END FOR
+    END FOR
+
+    IF bestFit NOT NULL THEN
+         RETURN bestFit 
+    ELSE 
+        RETURN closestElevator  'return the closest elevator with IDLE status'
+    END IF
+  
+END SEQUENCE     
+
+       =======  { getDistance : how far away?  } ======= 
+
+SEQUENCE getDistance USING X AND Y
+        return ABSOLUTE VALUE OF X - Y
+END SEQUENCE
+
+       =======  { isApproaching : is elevator approaching the floor?  } ======= 
+
+SEQUENCE isApproaching USING direction AND floor
+
+        ' prevent overshot !important 
+        ' if going down, want elevator floor to be > passenger floor.'
+        ' if going up, want elevator floor to be < passenger floor. '
+
+        IF (elevator.direction EQUAL movingUp && elevator.position <= floor ) OR ( elevator.direction EQUAL movingDown && elevator.position >= floor) THEN
+        RETURN TRUE
+        ELSE RETURN FALSE
+        ENDIF
+END SEQUENCE
+
+       =======  { isSameDirection : is it the same direction ?  } ======= 
+
+SEQUENCE isSameDirection USING directionCurrent AND direction
+         IF directionCurrent EQUAL direction THEN 
+         RETURN TRUE
+         ELSE RETURN FALSE        
+END SEQUENCE
+
+      =======  { checkWeightCapacity   } ======= 
+
+SEQUENCE checkWeightCapacity USING weightSensor AND weightMax
+         
+        READ WeightSensor 
+        IF WeightSensor > weightMax THEN
+            DISPLAY ALERT Elevator Overload
+            RETURN FALSE
+        ELSE RETURN TRUE
+        ENDIF
+   
+END SEQUENCE
+
+
+      =======  { elevatorOpenDoor: open elevator door for xseconds  } ======= 
+
+SEQUENCE elevatorOpenDoor 
+         
+        if elevator.status NOT EQUAL  moving 
+        THEN
+
+            SET chrono To zero
+
+            DO 
+                SET elevator.door TO open
+            while chrono < openDoorDelay
+
+            CALL elevatorCloseDoor
+        ENDIF 
+       
+END SEQUENCE
+
+SEQUENCE elevatorCloseDoor 
+         
+        IF elevator.door EQUAL open AND entryIsClear EQUAL TRUE AND checkWeightCapacity EQUAL TRUE
+                 
+            SET elevator.door TO CLOSE
+                
+        ENDIF 
+       
+END SEQUENCE
+
+
+
+      =======  { Elevator status : Moving, Stop and IDLE  } ======= 
+
+SEQUENCE setElevatorStatus USING elevator AND status
+         
+        SET elevator.status TO status
+
+  END FOR       
+END SEQUENCE
+
+
+      =======  { Listner for the floors buttons list and update requestList } ======= 
+
+SEQUENCE floorCallListner 
+         
+        WHILE TRUE           'runing in background '
+             
+                FOR EACH button IN FloorButtonList
+                    IF button is pressed 
+                        ' two information in the buton object : index and label (UP or Down)'
+                        ADD TO requestList With button index AND button label        
+                    END IF
+                END FOR
+
+        END WHILE
+
+        
+END SEQUENCE
+
+=======  { Manage requestList (floor) } ======= 
+
+SEQUENCE manageRequestList with requestList
+         
+        WHILE TRUE           'runing in background '
+             
+                FOR EACH request IN requestList
+
+                    SET elevator =  CALL requestElevator  WITH request index AND request direction
+                    CALL moveElevator WITH elevator AND request ndex
+                END FOR
+
+        END WHILE
+
+        
+END SEQUENCE
