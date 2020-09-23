@@ -200,10 +200,64 @@ SEQUENCE manageRequestList with requestList
                 FOR EACH request IN requestList
 
                     SET elevator =  CALL requestElevator  WITH request index AND request direction
-                    CALL moveElevator WITH elevator AND request ndex
+                    CALL moveElevator WITH elevator AND request index AND request direction
+                    UPDATE requestList
                 END FOR
 
         END WHILE
 
         
 END SEQUENCE
+
+=======  { moveElevator to destination } ======= 
+SEQUENCE moveElevator with elevator AND floor AND direction
+         
+    READ destination in  elevatorPanelButtonList      'Elevetor button list'
+    ADD destination TO destinationList 
+    CALL sortList 
+    SET elevator door TO Close
+    SET elevator status to moving
+
+
+    FOR EACH destination IN  destinationList  
+
+            IF direction EQUAL "UP"
+                WHILE elevator position NOT EQUAL destination
+                        elevator position + = 1 
+                END WHILE
+                SET elevator status to stop
+                SET elevator door TO open
+                UPDATE destionList 
+            END IF 
+
+
+            IF direction EQUAL "DOWN"
+                WHILE elevator position NOT EQUAL destination
+                        elevator position - = 1 
+                END WHILE
+                SET elevator status to stop
+                SET elevator door TO open
+                UPDATE destionList 
+            END IF 
+    END FOR
+        
+END SEQUENCE
+
+=======  { sortList : insert destination in the list } ======= 
+SEQUENCE sortList with requestList  
+
+        '  Insertion Sort Code '
+
+        FOR index 2 TO requestList length
+            SET key to requestList index       'firts element from list 1 .. 10'
+            SET element  to index - 1
+            while element >= 1 AND requestList element > key
+                'Swap elements'
+                SET requestList element + 1 to requestList element
+                SET element to element -1
+            END WHILE
+            SET requestList element + 1 to key
+        END FOR         
+        
+END SEQUENCE
+
