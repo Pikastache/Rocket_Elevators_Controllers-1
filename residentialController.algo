@@ -66,9 +66,9 @@ SEQUENCE requestElevator  USING floorCallButton AND direction
     SET closestElevator = 1        'Default '
     FOR EACH column IN columns                                    
         FOR EACH elevator IN elevators 
-            CALL isApproaching()  WITH elevator.direction AND floorCallButton RETURNING Boolean 
-            CALL isSameDirection()  WITH elevator.direction AND direction RETURNING Boolean
-            IF isApproaching EQUAL TRUE && sameDirection EQUAL TRUE && (bestFit EQUAL NULL || getDistance()  WITH elevator < getDistance()  WITH bestFit) 
+            CALL isApproaching   WITH elevator direction AND floorCallButton RETURNING Boolean 
+            CALL isSameDirection  WITH elevator direction AND direction RETURNING Boolean
+            IF isApproaching EQUAL TRUE && sameDirection EQUAL TRUE && (bestFit EQUAL NULL || getDistance()  WITH elevator <  CALL getDistance  WITH bestFit ) 
                 THEN
                 SET bestFit TO elevator
             END IF
@@ -76,7 +76,7 @@ SEQUENCE requestElevator  USING floorCallButton AND direction
             'if we dont have bestFit GET THE NEAREST IDLE'
 
             IF elevator.direction EQUAL IDLE and getDistance  WITH closestElevator > getDistance WITH elevator THEN
-                SET closestElevator TO elevator.index
+                SET closestElevator TO elevator index
             END IF
 
 
@@ -105,7 +105,7 @@ SEQUENCE isApproaching USING direction AND floor
         ' if going down, want elevator floor to be > passenger floor.'
         ' if going up, want elevator floor to be < passenger floor. '
 
-        IF (elevator.direction EQUAL movingUp && elevator.position <= floor ) OR ( elevator.direction EQUAL movingDown && elevator.position >= floor) THEN
+        IF (elevator direction EQUAL movingUp && elevator position <= floor ) OR ( elevator direction EQUAL movingDown && elevator position >= floor) THEN
         RETURN TRUE
         ELSE RETURN FALSE
         ENDIF
@@ -137,7 +137,7 @@ END SEQUENCE
 
 SEQUENCE elevatorOpenDoor 
          
-        if elevator.status NOT EQUAL  moving 
+        if elevator status NOT EQUAL  moving 
         THEN
 
             SET chrono To zero
