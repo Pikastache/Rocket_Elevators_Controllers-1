@@ -11,10 +11,9 @@
 /*
 /*    =======================================================================================      
 
-/*                           =======  { DEFINE ALGORITHM VARIABLES } ======= 
+                          =======  { DEFINE ALGORITHM VARIABLES } ======= 
 
 DEFINE COLUMN USING id AND numberOfFloor AND numberOfElevator
-
     ID : id
     STATUS: status
     NUMBEROFFLOOR: numberOfFloor
@@ -24,18 +23,18 @@ DEFINE COLUMN USING id AND numberOfFloor AND numberOfElevator
             SET defaultFloor to 1
             SET maxCharge TO 800    ' Example 800kg'
             FOR EACH numberOfElevator
-                ADD ( NEW elevator WITH index AND  defaultFloor AND IDLE AND maxCharge)   TO Elevators       
+                ADD ( INSTANCIATION elevator WITH index AND  defaultFloor AND IDLE AND maxCharge)   TO Elevators       
             END FOR
     END SEQUENCE
     SEQUENCE createFloorButtonList USING numberOfFloor
-        SET first button in FloorButtonList TO "UP" 
+        SET first button in FloorButtonList TO "UP"   'one button in the first and last floor'
         SET last button in FloorButtonList TO "DOWN"
         SET index to numberOfFloor - 1
         
         WHILE index > 1                                 'for the same floor: index we have two button'
          repeat  
-         ADD NEW Button  with index AND "UP" TO FloorButtonList 
-         ADD NEW Button  with index AND "Down" TO FloorButtonList 
+         ADD INSTANCIATION Button  with index AND "UP" TO FloorButtonList 
+         ADD INSTANCIATION Button  with index AND "Down" TO FloorButtonList 
         END WHILE 
 
     END SEQUENCE 
@@ -52,11 +51,9 @@ DEFINE elevator USING id AND floorPosition AND status AND weightMax
     weightSensor            'return weight of passengers' 
     openDoorDelay           'define the delay to keep door open'
     elevatorPanelButtonList     
-
- END DEFINE   
-
-
-/*                       
+    requestListLanding SET to empty list  ' Every elevator have a landing List'
+    
+ END DEFINE                      
 
  =======  { requestElevator : Find the closest in the same direction else send IDLE } ======= 
 
@@ -75,11 +72,9 @@ SEQUENCE requestElevator  USING floorCallButton AND direction
 
             'if we dont have bestFit GET THE NEAREST IDLE'
 
-            IF elevator.direction EQUAL IDLE and getDistance  WITH closestElevator > getDistance WITH elevator THEN
+            IF elevator status EQUAL IDLE and getDistance  WITH closestElevator > getDistance WITH elevator THEN
                 SET closestElevator TO elevator index
             END IF
-
-
         END FOR
     END FOR
 
@@ -132,48 +127,36 @@ SEQUENCE checkWeightCapacity USING weightSensor AND weightMax
    
 END SEQUENCE
 
-
       =======  { elevatorOpenDoor: open elevator door for xseconds  } ======= 
 
 SEQUENCE elevatorOpenDoor 
          
         if elevator status NOT EQUAL  moving 
         THEN
-
             SET chrono To zero
-
+           
             DO 
                 SET elevator door TO open
             while chrono < openDoorDelay
-
+            
             CALL elevatorCloseDoor
-        ENDIF 
-       
+        ENDIF        
 END SEQUENCE
 
-SEQUENCE elevatorCloseDoor 
-         
-        IF elevator.door EQUAL open AND entryIsClear EQUAL TRUE AND checkWeightCapacity EQUAL TRUE
-                 
-            SET elevator door TO CLOSE
-                
-        ENDIF 
-       
+SEQUENCE elevatorCloseDoor          
+        IF elevator door EQUAL open AND entryIsClear EQUAL TRUE AND checkWeightCapacity EQUAL TRUE                 
+            SET elevator door TO CLOSE                
+        ENDIF        
 END SEQUENCE
-
-
 
       =======  { Elevator status : Moving, Stop and IDLE  } ======= 
 
-SEQUENCE setElevatorStatus USING elevator AND status
-         
-        SET elevator status TO status
-
-  END FOR       
+SEQUENCE setElevatorStatus USING elevator AND status         
+        SET elevator status TO status        
 END SEQUENCE
 
 
-      =======  { Listner for the floors buttons list and update requestList } ======= 
+      =======  { Listner for the floors buttons list and update requestListFloor } ======= 
 
 SEQUENCE floorCallListner 
          
@@ -182,6 +165,7 @@ SEQUENCE floorCallListner
                 FOR EACH button IN FloorButtonList
                     IF button is pressed 
                         ' two information in the buton object : index and label (UP or Down)'
+                        'example : 2 UP , 9 Down'
                         ADD TO requestListFloor With button index AND button label 
                         CALL sortList WITH requestListFLoor       
                     END IF
@@ -193,20 +177,20 @@ SEQUENCE floorCallListner
 END SEQUENCE
 
 
-      =======  { Listner for the elevator panel buttons and update requestLandingList } ======= 
+      =======  { Listner for the elevator panel buttons and update requestListLanding } ======= 
 
-SEQUENCE floorCallListner 
+SEQUENCE landingCallListner 
          
         WHILE TRUE           'runing in background '
-             
-                FOR EACH button IN FloorButtonList
+            FOR EACH elevator IN elevators
+                FOR EACH button IN elevatorPanelButtonList
                     IF button is pressed 
                         ' two information in the buton object : index and label (UP or Down)'
-                        ADD TO requestListFloor With button index AND button label 
-                        CALL sortList WITH requestListFLoor       
+                        ADD TO elevator requestListLanding With button index AND button label 
+                        CALL sortList WITH elevator requestListLanding       
                     END IF
                 END FOR
-
+            END FOR
         END WHILE
 
         
@@ -215,16 +199,15 @@ END SEQUENCE
 
 
 =======  { Manage requestListFloor  } ======= 
-SEQUENCE manageRequestListFloor with requestListLanding
+SEQUENCE manageRequestListFloor with requestListFloor
          
         WHILE TRUE           'runing in background '
              
-                FOR EACH request IN requestListFloor    'request inherit the buton value index and label'
-
-                    SET elevator =  CALL requestElevator  WITH request index AND request direction
-                    CALL moveElevator WITH elevator AND request index AND request direction
-                    UPDATE requestListLanding
-                END FOR
+            FOR EACH request IN requestListFloor    'request inherit the buton value index and label'
+                SET elevator =  CALL requestElevator  WITH request index AND request direction
+                CALL moveElevator WITH elevator AND request index AND request direction
+                UPDATE requestListLanding             'delete the curent request'
+            END FOR
 
         END WHILE
 
@@ -235,70 +218,82 @@ END SEQUENCE
 
 =======  { Manage requestListLanding  } ======= 
 
-SEQUENCE manageRequestListLanding with requestListLanding
-         
+SEQUENCE manageRequestListLanding with requestListLanding          
         WHILE TRUE           'runing in background '
-             
-                FOR EACH request IN requestListLanding    'request inherit the buton value index and label'
-
+            FOR EACH elevator IN elevators
+                FOR EACH request IN requestListLanding    'List already sorted'
                     CALL moveElevator WITH elevator AND request index AND request direction
-                   
+                    UPDATE requestListLanding             'delete the curent request'
                 END FOR
-
-        END WHILE
-
-        
+            END FOR
+        END WHILE        
 END SEQUENCE
 
 =======  { moveElevator to destination } ======= 
-SEQUENCE moveElevator with elevator AND floor AND direction
-         
-    READ destination in  elevatorPanelButtonList      'Elevetor button list'
-    ADD destination TO destinationList 
-    CALL sortList 
-    SET elevator door TO Close
-    SET elevator status to moving
-
-
-    FOR EACH destination IN  destinationList  
-
-            IF direction EQUAL "UP"
+SEQUENCE moveElevator with elevator AND destination AND direction
+     
+    IF elevator door EQUAL close  
+    THEN 
+            IF direction EQUAL "UP" 
+            THEN
                 WHILE elevator position NOT EQUAL destination
                         elevator position + = 1 
+                        display elevator position
                 END WHILE
-                SET elevator status to stop
-                SET elevator door TO open
-                UPDATE destionList 
+                CALL setElevatorStatus WITH stop
+                CALL elevatorOpenDoor 
             END IF 
 
 
-            IF direction EQUAL "DOWN"
+            IF direction EQUAL "DOWN" 
+            THEN
                 WHILE elevator position NOT EQUAL destination
                         elevator position - = 1 
+                         display elevator position
                 END WHILE
-                SET elevator status to stop
-                SET elevator door TO open
-                UPDATE destionList 
+                CALL setElevatorStatus WITH stop
+                CALL elevatorOpenDoor 
             END IF 
-    END FOR
+    END IF
         
 END SEQUENCE
 
 =======  { sortList : insert destination in the list } ======= 
 SEQUENCE sortList with requestList  
 
-        '  Insertion Sort Code '
+        '  Insertion Sort Code adapted from https://www.baeldung.com/java-insertion-sort'
 
         FOR index 2 TO requestList length
-            SET key to requestList index       'firts element from list 1 .. 10'
-            SET element  to index - 1
-            while element >= 1 AND requestList element > key
+            SET key to requestList index       'element from list 1 .. 10'
+            SET jj  to index - 1
+            while jj > or = 1 AND requestList jj > key
                 'Swap elements'
-                SET requestList element + 1 to requestList element
-                SET element to element -1
+                SET requestList jj + 1 to requestList jj
+                SET jj to jj -1
             END WHILE
-            SET requestList element + 1 to key
+            SET requestList jj + 1 to key
         END FOR         
         
 END SEQUENCE
 
+=======  { Back TO Origin} ======= 
+'WE CAN SET ORIGIN TO FIRST FLOOR FROM 12AM TO 12PM AND TO 8 FLOOR FOR EXAMPLE'
+'FROM 12PM TO 12AM TO COVER THE MOST PART OF THE PASSENGER TRAFFIC'
+
+SEQUENCE backToBase WITH origin AND requestListFloor
+    IF requestListFloor is empty 
+        FOR EACH column IN columns                                    
+            FOR EACH elevator IN elevators    
+                IF elevator requestListLanding is empty  'no job to do '
+                    IF elevator position > origin
+                        CALL moveElevator WITH elevator AND origin AND "DOWN"
+                        CALL safetyProcedure
+                    ELSE IF elevator position < origin
+                        CALL moveElevator WITH elevator AND origin AND "UP"
+                        CALL safetyProcedure
+                    ENDIF
+                END IF
+            END FOR
+        END FOR
+    END IF
+END SEQUENCE
