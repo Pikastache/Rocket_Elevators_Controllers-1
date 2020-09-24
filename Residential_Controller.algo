@@ -192,6 +192,28 @@ SEQUENCE floorCallListner
         
 END SEQUENCE
 
+
+      =======  { Listner for the elevator panel buttons and update requestLandingList } ======= 
+
+SEQUENCE floorCallListner 
+         
+        WHILE TRUE           'runing in background '
+             
+                FOR EACH button IN FloorButtonList
+                    IF button is pressed 
+                        ' two information in the buton object : index and label (UP or Down)'
+                        ADD TO requestListFloor With button index AND button label 
+                        CALL sortList WITH requestListFLoor       
+                    END IF
+                END FOR
+
+        END WHILE
+
+        
+END SEQUENCE
+
+
+
 =======  { Manage requestListFloor  } ======= 
 SEQUENCE manageRequestListFloor with requestListLanding
          
