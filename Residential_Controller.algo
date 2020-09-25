@@ -23,7 +23,8 @@ DEFINE COLUMN USING id AND numberOfFloor AND numberOfElevator
             SET defaultFloor to 1
             SET maxCharge TO 800    ' Example 800kg'
             FOR EACH numberOfElevator
-                ADD ( INSTANCIATION elevator WITH index AND  defaultFloor AND IDLE AND maxCharge)   TO Elevators       
+                ADD ( INSTANCIATION elevator WITH index AND  defaultFloor AND IDLE AND maxCharge)   TO Elevators
+                INCREMENT index       
             END FOR
     END SEQUENCE
     SEQUENCE createFloorButtonList USING numberOfFloor
@@ -59,12 +60,12 @@ DEFINE elevator USING id AND floorPosition AND status AND weightMax
 
 SEQUENCE requestElevator  USING floorCallButton AND direction                     
          
-    SET bestFit = NULL
-    SET closestElevator = 1        'Default '
+    SET bestFit TO NULL
+    SET closestElevator TO 1        'Default '
     FOR EACH column IN columns                                    
-        FOR EACH elevator IN elevators 
-            CALL isApproaching   WITH elevator direction AND floorCallButton RETURNING Boolean 
-            CALL isSameDirection  WITH elevator direction AND direction RETURNING Boolean
+        FOR EACH elevator IN column elevators
+            CALL isApproaching   WITH elevator AND floorCallButton RETURNING Boolean 
+            CALL isSameDirection  WITH elevator direction AND direction RETURNING sameDirection  'TRUE or FALSE'
             IF isApproaching EQUAL TRUE && sameDirection EQUAL TRUE && (bestFit EQUAL NULL || getDistance()  WITH elevator <  CALL getDistance  WITH bestFit ) 
                 THEN
                 SET bestFit TO elevator
@@ -94,7 +95,7 @@ END SEQUENCE
 
        =======  { isApproaching : is elevator approaching the floor?  } ======= 
 
-SEQUENCE isApproaching USING direction AND floor
+SEQUENCE isApproaching USING elevator AND floor
 
         ' prevent overshot !important 
         ' if going down, want elevator floor to be > passenger floor.'
