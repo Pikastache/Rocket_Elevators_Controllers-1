@@ -22,13 +22,15 @@
 
 <br>
 
-## :dart: About
+## :dart: About:
 
 This repository contains the algorithm files for the elevator controllers for the New Rocket Elevator Solutions for both Residential and Commercial Offers
 
-## :dart: Video demo link
+## :dart: Video demo:
 
-## :sparkles: Features
+<a href="https://youtu.be/OQV_e5cA7wc" target="_blank">This video demonstrate how the algorithms work. (youtube)</a>
+
+## :sparkles: Features:
 
 :heavy_check_mark: Pseudo Code;\
 
