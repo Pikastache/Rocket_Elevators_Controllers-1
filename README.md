@@ -28,7 +28,7 @@ This repository contains the algorithm files for the elevator controllers for th
 
 ## :dart: Video demo:
 
-<a href="https://youtu.be/OQV_e5cA7wc" target="_blank">This video demonstrate how the algorithms work. (youtube)</a>
+<a href="https://youtu.be/OQV_e5cA7wc" target="_blank"> Link to video demo : https://youtu.be/OQV_e5cA7wc (youtube)</a>
 
 ## :sparkles: Features:
 
