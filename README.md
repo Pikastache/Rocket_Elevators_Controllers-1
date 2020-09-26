@@ -3,7 +3,7 @@
   <!-- Saad Eddine FEKI -->
 </div>
 
-<h1 align="center"> 🚀 Rocket Elevators ---- By Saad eddine</h1>
+<h1 align="center"> 🚀 Rocket Elevators</h1>
 
 <!-- Status -->
 
@@ -26,7 +26,7 @@
 
 This repository contains the algorithm files for the elevator controllers for the New Rocket Elevator Solutions for both Residential and Commercial Offers
 
-## :checkered_flag-starting: Video demo links
+## :dart: Video demo link
 
 ## :sparkles: Features
 
