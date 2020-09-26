@@ -1,4 +1,3 @@
-/* 
 /*========================== The commercial controller ================================
 /*                      
                      -Objects that need to be controlled:
@@ -12,104 +11,221 @@
 /*                  8. Floor display
 /*                   Author: Saad Eddine 
 /*
-/*    =======================================================================================      
+/*    =======================================================================================     
 
-                          =======  { DEFINE ALGORITHM VARIABLES } ======= 
+                          =======  { DEFINE Battery } ======= 
 
-DEFINE battery USING ID AND status
+DEFINE Battery USING ID AND status AND amountOfColumn AND amountOfElevatorPerColumn AND minFloorList AND maxFloorList
     ID: id
     STATUS : status  'battery can be ON/OFF'
-    columns: SET to empty list of column  
-    SEQUENCE createColumns 
-                    'first column serving floor -6 to 1 and have 3 elevators'
-        ADD ( INSTANCIATION column WITH 1 AND -6 AND 1 AND 3)   TO columns
-                    'second column serving floor 2 to 20'
-        ADD ( INSTANCIATION column WITH 2 AND 2 AND 20 AND 3)   TO columns
-                    'third column serving floor 21 to 40'
-        ADD ( INSTANCIATION column WITH 3 AND 21 AND 40 AND 3)   TO columns
-                    'third column serving floor 21 to 40'
-        ADD ( INSTANCIATION column WITH 4 AND 41 AND 60 AND 3)   TO columns        
-    END SEQUENCE 
-END DEFINE
+    columnList: SET to empty list of Column  
+    callButtonList : SET To empty List of callButton
 
-DEFINE column USING id AND startZone AND endZone AND numberOfElevator
-    ID : id
-    STARTZONE: startZone
-    ENDZONE: endZone
-    Elevators: SET to empty list of elevator                      
-    SEQUENCE createElevators USING numberOfElevator  
-            SET index to 1
-            SET origin to 1  
-            SET maxCapacity To xvalue         
-            FOR EACH numberOfElevator
-                ADD ( INSTANCIATION elevator WITH index AND  origin AND IDLE AND maxCapacity)   TO Elevators       
-            END FOR
+    SEQUENCE createColumnList USING amountOfColumn AND amountOfElevatorPerColumn AND minFloorList AND maxFloorList
+        SET index TO 1
+        FOR amountOfColumn           
+             INIT newColumn TO INSTANTIATE Column WITH  index AND  minFloor[index] AND maxFloor[index] AND  amountOfElevatorPerColumn
+             ADD newColumn TO columnList 
+             INCREMENT index 
+        ENDFOR 
+    ENDSEQUENCE 
+
+    SEQUENCE createCallButtonList  USING floorAmount AND minFloor
+        SET index TO minFloor
+        FOR floorAmount
+            IF index NOT EQUAL TO 0
+                IF index IS LESS THAN 1
+                    INIT newCallButton TO INSTANTIATE callButton WITH "down" AND index AND "notPressed"
+                    ADD newButton TO callButtonList
+                ENDIF
+                IF index IS GREATER THAN 1
+                    INIT newCallButton TO INSTANTIATE callButton WITH "up" AND index AND "notPressed"
+                    ADD newButton TO callButtonList
+                ENDIF
+            ENDIF
+            INCREMENT index  
+        ENDFOR  
+    ENDSEQUENCE
+
+    SEQUENCE requestELEvator USING requestedFloor AND direction
+        CALL getBestElevator WITH requestedFoor  RETURNING elevator
+        ADD  requestedFloor TO requestList OF elevator
+        CALL sortList WITH requestList OF elevator
+        CALL moveElevator WITH elevator AND requestedFloor
+        CALL openDoors WITH elevator
+        CALL updateList with requestedFloor
+    ENDSEQUENCE
+    
+    SEQUENCE requestFloor  USING callButton
+        SET floor TO floor of callButton 
+        SET direction TO  direction of callButton
+
+        CALL getBestElevator WITH floor RETURNING elevator
+        ADD  floor TO requestList OF elevator
+        CALL requestList WITH requestList OF elevator
+        CALL moveElevator WITH elevator AND 1  'Go back to RC'
+        CALL openDoors WITH elevator
+        CALL updateList with requestedFloor
+    ENDSEQUENCE
+
+    SEQUENCE monotoringCallButtonList
+        FOR EACH button IN callButtonList 
+          IF status of button EQUAL "isPressed" THEN
+            CALL requestELEvator USING floor of button
+          ENDIF
+        ENDFOR
+    ENDSEQUENCE
+
+    SEQUENCE scheduleElevator USING DATE AND TIME   
+    FOR column IN columnList
+        FOR elevator in elevatorList of column
+            IF day of DATE in [monday .. friday] AND elevator requestList IS empty
+                IF hour of TIME in [06 .. 12]
+                CALL moveElevator  with elevator AND 1   
+                ELSE IF hour of TIME in [15 .. 17]
+                CALL moveElevator  with elevator AND minFloor of column
+            ENDIF              
+        ENDFOR
+    ENDFOR
+ENDSEQUENCE
+    CALL createColumnList WITH amountOfColumn AND amountOfElevatorPerColumn
+    CALL createCallButtonList WITH floorAmount AND minFloor
+    CALL scheduleElevator WITH SystemDATE AND SystemTIME
+    CALL monotoringCallButtonList
+ENDDEFINE
+ 
+                               =======  { DEFINE Column } ======= 
+DEFINE Column USING id AND amountFloor AND minFloor AND maxFloor AND nbElevatorPerColumn
+    id: id
+    statuts: SET ON AS DEFAULT 'ON/OFF'
+    amountFloor: amountFloor 
+    minFloor: minFloor
+    maxFloor: maxFloor
+    elevatorList: SET To empty List of elevator 
+
+    SEQUENCE createElevatorList USING nbElevatorPerColumn
+        SET index TO 1
+        FOR nbElevatorPerColumn
+            INIT newElevator TO INSTANTIATE Elevator WITH index AND "IDLE"  AND "close" AND "NONE" AND "800kg"
+            ADD newElevator TO elevatorList 
+            INCREMENT index
+        ENDFOR
+    ENDSEQUENCE
+
+CALL createElevatorList WITH nbElevatorPerColumn
+ENDDEFINE
+
+                                 =======  { DEFINE Elevator } ======= 
+DEFINE Elevator USING id AND status 
+    id: id
+    status: status 'STOP, Moving and idle'
+    door: SET TO close by default 
+    direction: SET TO none by default 'can be up down or none'
+    maxCapacity: maxCapacity
+    requestList: SET To empty List
+    doorSensor: SET TO boolean
+    openDoorDelay: SET TO xvalue
+    weightSensor: SET TO
+
+    SEQUENCE checkWeightCapacity USING elevator weightSensor AND elevator weightMax
+         IF WeightSensor > weightMax THEN
+            DISPLAY ALERT Elevator Overload
+            RETURN FALSE
+        ELSE RETURN TRUE
+        ENDIF   
     END SEQUENCE
 
-    SEQUENCE createElevatorButton USING numberOfElevator  
-            SET index to 1        
-            FOR EACH numberOfElevator
-                ADD ( INSTANCIATION Button WITH index AND  "CallButton")   TO Elevators       
-            END FOR
+    SEQUENCE moveElevator WITH elevator AND destination 
+        IF elevator door EQUAL close  AND elevator doorSensor AND elevator checkWeightCapacity 
+        THEN 
+            IF position of elevator  LESS THAN destination 
+            THEN
+                WHILE elevator position NOT EQUAL destination
+                    INCREMENT elevator position BY 1
+                    display elevator position
+                END WHILE
+                    CALL setElevatorStatus WITH elevator AND stop
+                    CALL elevatorOpenDoor 
+                ENDIF
+                IF position of elevator  GREATER THAN destination 
+                THEN
+                    WHILE elevator position NOT EQUAL destination
+                        INCREMENT elevator position BY -1
+                        display elevator position
+                    END WHILE
+                    CALL setElevatorStatus WITH elevator AND stop
+                    CALL OpenDoor 
+                ENDIF 
+        ENDIF
+    ENDSEQUENCE
+
+    SEQUENCE checkWeightCapacity USING elevator
+        IF elevator WeightSensor > weightMax THEN
+            DISPLAY ALERT Elevator Overload
+            RETURN FALSE
+        ELSE RETURN TRUE
+        ENDIF   
     END SEQUENCE
- END DEFINE 
 
-DEFINE Button USING id AND label
-    ID: id
-    LABEL: label
-END DEFINE
+    SEQUENCE setElevatorStatus USING elevator AND status         
+        SET elevator status TO status        
+    END SEQUENCE
 
+    SEQUENCE OpenDoor          
+        if elevator status NOT EQUAL  moving THEN
+            SET timer To zero
+            DO 
+                SET elevator door TO open
+                INCREMENT timer
+            while timer < openDoorDelay
+        ENDIF        
+    END SEQUENCE
 
-DEFINE elevator USING id AND position AND status AND maxCapacity
-    ID : id
-    STATUS: status
-    POSITION: position  'origin first floor by default'   
-    MAXCAPACITY: maxCapacity
-    door: SET TO close      'default is close'
-    direction               'UP / DOWN'
-    weightSensor:             'return weight of passengers' 
-    openDoorDelay           'define the delay to keep door open'
-    requestLanding 
-    displayPosition    
-END DEFINE  
+    SEQUENCE CloseDoor          
+        IF elevator door EQUAL open AND elevator doorSensor EQUAL TRUE AND elevator checkWeightCapacity EQUAL TRUE                 
+            SET elevator door TO CLOSE                
+        ENDIF        
+    END SEQUENCE
 
-                       =======  { Elevator System INIT } ======= 
-SEQUENCE initSystem
-  SET Battery status TO ON
-  FOR EACH column IN columns
-    FOR EACH elevator IN column elevators
-        CALL safetyProcedure
-        CALL displayFloorLevel USING elevator
-        SET elevator door TO Close
-        SET WeightSensor TO ON   
-    END FOR
-  END FOR  
-END SEQUENCE
+ENDDEFINE
+
+                                 =======  { DEFINE CallButton} ======= 
+
+DEFINE callButon USING direction AND floor AND status
+    status: status   by default "notPressed"                   'isPressed / not pressed'
+    direction: direction
+    floor: floor
+ENDDEFINE
 
 
-      =======  { requestElevatorToFloor: : provide elevator from RC TO Floors and basements  } ======= 
+SEQUENCE getBestElevator USING requestedFloor and direction
+    CALL getColumn USING requestedFloor returning column
+    SET bestFit TO NULL
+    SET closestElevator TO NULL
+                                     
+        FOR EACH elevator IN column  elevatorList
+                'Check if the elevator is appoaching to the requested floor, not yet overshot' 
+            CALL isApproaching   WITH elevator AND requestedFloor  RETURNING isApproaching                          
+            CALL isSameDirection  WITH elevator AND  direction  RETURNING sameDirection  
 
-SEQUENCE requestElevatorToFloor USING requestFloor
-    CALL getColumn USING requestFloor STORE result IN column inedx
-    CALL getElevator USING requestFloor AND column index STORE result IN elevator
-    ADD  requestFloor TO requestFloorList
-    CALL sortList WITH requestFloor
-    CALL moveElevator USING elevator AND requestFloor
-END SEQUENCE
-
-     ======  { requestElevatorToRC: provide elevator from floors to RC } ======= 
-
- SEQUENCE requestBackToRC USING floorLevel
-    'find the column'
-    CALL getColumn USING floorLevel STORE result IN column index
-    'find the elevator'
-    CALL getElevator USING requestFloor AND column STORE result IN elevator
-    'ADD and SORT task'
-    ADD  floorLevel TO elevator requestLanding
-    CALL sortList WITH floorLevel
-    'move elevator to RC = 1'
-    CALL moveElevator USING elevator AND  1
-END SEQUENCE
+            IF isApproaching EQUAL TRUE AND sameDirection EQUAL TRUE AND (bestFit EQUAL NULL OR  CALL getDistance   WITH elevator LESS THAN  CALL getDistance  WITH bestFit ) 
+                THEN
+                SET bestFit TO elevator
+            END IF
+            'if we dont have bestFit (short distance + same distance) '
+            'GET THE NEAREST elevator or IDLE'
+            IF elevator status EQUAL IDLE OR  getDistance  WITH closestElevator GREATER THAN  getDistance WITH elevator 
+            THEN
+                SET closestElevator TO elevator 
+            END IF
+        END FOR
+        ' if there are a best elevator return bestFit else return the closest elevator no matter direction or elevator IDLE'
+    IF bestFit NOT NULL THEN
+         RETURN bestFit 
+    ELSE 
+        RETURN closestElevator  
+    END IF 
+ENDSEQUENCE
 
  =======  { getColumn: return the correspondant column } ======= 
 
@@ -122,36 +238,24 @@ END SEQUENCE
     ENDCASE
 END SEQUENCE
 
-=======  { getElevator } ======= 
+       =======  { isApproaching : is elevator approaching the floor?  } ======= 
 
- SEQUENCE getElevator USING  requestFloor AND index
-  
-    SET bestFit TO NULL
-    SET closestElevator TO columns[index]  elevators [1]       'Default '
-                                     
-        FOR EACH elevator IN columns[index]  elevators
+SEQUENCE isApproaching USING elevator AND floor
 
-            CALL isApproaching   WITH elevator AND requestFloor RETURNING isApproaching         'TRUE or FALSE' 
-            CALL isSameDirection  WITH elevator AND  requestFloor RETURNING sameDirection  'TRUE or FALSE'
+        IF (elevator direction EQUAL "UP" AND elevator position LESS or EQUAL floor ) OR
+         ( elevator direction EQUAL "DOWN" AND elevator position GREATER or EQUAL floor) 
+        THEN
+            RETURN TRUE
+            ELSE RETURN FALSE
+        ENDIF
+END SEQUENCE
 
-            IF isApproaching EQUAL TRUE AND sameDirection EQUAL TRUE AND (bestFit EQUAL NULL || getDistance()  WITH elevator <  CALL getDistance  WITH bestFit ) 
-                THEN
-                SET bestFit TO elevator
-            END IF
+       =======  { isSameDirection : is it the same direction ?  } ======= 
 
-            'if we dont have bestFit (short distance + same distance) '
-            'GET THE NEAREST elevator or IDLE'
-
-            IF elevator status EQUAL IDLE OR CALL getDistance  WITH closestElevator > CALL getDistance WITH elevator THEN
-                SET closestElevator TO elevator 
-            END IF
-        END FOR
-    IF bestFit NOT NULL THEN
-         RETURN bestFit 
-    ELSE 
-        RETURN closestElevator  'return the closest elevator no matter direction or elevator IDLE '
-    END IF
-     
+SEQUENCE isSameDirection USING elevator AND direction
+        IF direction of elevator EQUAL direction THEN 
+         RETURN TRUE
+         ELSE RETURN FALSE      
 END SEQUENCE
 
 
@@ -161,156 +265,10 @@ SEQUENCE getDistance USING X AND Y
         return ABSOLUTE VALUE OF X - Y
 END SEQUENCE
 
-       =======  { isApproaching : is elevator approaching the floor?  } ======= 
 
-SEQUENCE isApproaching USING elevator AND floor
-
-        IF (elevator direction EQUAL "UP" AND elevator position < or = floor ) OR
-         ( elevator direction EQUAL "DOWN" AND elevator position > or = floor) 
-        THEN
-            RETURN TRUE
-            ELSE RETURN FALSE
-        ENDIF
-END SEQUENCE
-
-       =======  { isSameDirection : is it the same direction ?  } ======= 
-
-SEQUENCE isSameDirection USING elevator AND requestFloor
-        IF directionCurrent EQUAL direction THEN 
-         RETURN TRUE
-         ELSE RETURN FALSE      
-END SEQUENCE
-
-
-
-=============  { moveElevator } ======= 
-SEQUENCE moveElevator with elevator AND destination 
-     
-    IF elevator door EQUAL close  
-    THEN 
-            IF elevator direction EQUAL "UP" 
-            THEN
-                WHILE elevator position NOT EQUAL destination
-                        INCREMENT elevator position 
-                        display elevator position
-                END WHILE
-                CALL setElevatorStatus WITH stop
-                CALL elevatorOpenDoor 
-            END IF 
-
-
-            IF direction EQUAL "DOWN" 
-            THEN
-                WHILE elevator position NOT EQUAL destination
-                         DICREMENT elevator position  
-                         display elevator position
-                END WHILE
-                CALL setElevatorStatus WITH stop
-                CALL elevatorOpenDoor 
-            END IF 
-    END IF
-        
-END SEQUENCE
-
-
-
- =======  { Listner for the floors buttons list and update requestLanding   } ======= 
-
-SEQUENCE floorCallListner 
-         
-        WHILE TRUE           'runing in background '
-             
-                FOR EACH column IN colums
-                    FOR EACH button IN clumn FloorButtonList
-                        IF button is pressed 
-                            ' Object Button'
-                            ADD TO requestLanding With button id 
-                            CALL sortList WITH requestLanding       
-                        END IF
-                    END FOR
-                END FOR
-
-        END WHILE        
-END SEQUENCE
-
-=======  { Manage requestLanding List  } ======= 
-SEQUENCE manageRequestLandingList  with requestLandingList
-         
-        WHILE TRUE           'runing in background '
-             
-            FOR EACH request IN requestLandingList    'request inherit the buton value index and label'
-                CALL requestBackToRC WITH request
-                UPDATE requestListLanding             'delete the curent request'
-            END FOR
-        END WHILE        
-END SEQUENCE
-
-   
-
-=======  { Manage request of elevators from RC To floors  } ======= 
-SEQUENCE manageRequestLandingList  with requestFloorList
-         
-        WHILE TRUE           'runing in background '
-             
-            FOR EACH request IN requestFloorList    'request inherit the buton value index and label'
-                CALL requestElevatorToFloor WITH request
-                UPDATE requestListLanding             'delete the curent request'
-            END FOR
-        END WHILE        
-END SEQUENCE
- 
-    =======  { Elevator status : Moving, Stop and IDLE  } ======= 
-
-SEQUENCE setElevatorStatus USING elevator AND status         
-        SET elevator status TO status        
-END SEQUENCE
-
-
-      =======  { elevatorOpenDoor: open elevator door for xseconds  } ======= 
-
-SEQUENCE elevatorOpenDoor 
-         
-        if elevator status NOT EQUAL  moving 
-        THEN
-            SET chrono To zero
-           
-            DO 
-                SET elevator door TO open
-            while chrono < openDoorDelay
-            
-            CALL elevatorCloseDoor
-        ENDIF        
-END SEQUENCE
-
-  =======  { elevatorCloseDoor  } =======
-
-SEQUENCE elevatorCloseDoor          
-        IF elevator door EQUAL open AND entryIsClear EQUAL TRUE AND checkWeightCapacity EQUAL TRUE                 
-            SET elevator door TO CLOSE                
-        ENDIF        
-END SEQUENCE
-
-
-
-   =======  { checkWeightCapacity   } ======= 
-
-SEQUENCE checkWeightCapacity USING weightSensor AND weightMax
-         
-        READ WeightSensor 
-        IF WeightSensor > weightMax THEN
-            DISPLAY ALERT Elevator Overload
-            RETURN FALSE
-        ELSE RETURN TRUE
-        ENDIF
-   
-END SEQUENCE
-
-
-=======  { sortList : insert destination in the list } ======= 
-SEQUENCE sortList with requestList  
-
+=======  { sortList : insertion sort algorithm } ======= 
+SEQUENCE sortList with requestList 
         '  Insertion Sort Code adapted from https://www.baeldung.com/java-insertion-sort'
-
         FOR index 2 TO requestList length
             SET key to requestList index       'element from list 1 .. 10'
             SET jj  to index - 1
@@ -323,3 +281,23 @@ SEQUENCE sortList with requestList
         END FOR         
         
 END SEQUENCE
+
+SEQUENCE updateList USING list
+    ' its a sorted list so the first element is the current destination of the elevator'
+    DELETE the first element in list 'head of the list'
+ENDSEQUENCE
+
+------------------------------------ TESTING SECTION -----------------------------------
+minFloorList[-6, 2, 21, 41] maxFloorList[1, 20, 40, 60]
+
+INIT mainBattery TO INITIATE Battery WITH "1" AND "On" AND "3" AND minFloorList AND maxFloorList
+
+Scenarios:
+Someone at RC wants to go to the 20th floor.
+CALL requestELEvator OF mainBattery WITH 20 and "up"
+-------------------------
+Someone at RC wants to go to the 36th floor.
+CALL requestELEvator OF mainBattery WITH 36 and "up"
+-------------------------
+Someone at 54e floor wants to go to RC.
+CALL requestFloor  OF mainBattery WITH "54"
