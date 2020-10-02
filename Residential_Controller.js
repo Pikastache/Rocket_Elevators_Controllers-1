@@ -11,13 +11,13 @@ class Column {
 	createFloorButtonList(floorAmount) {
 		for (let i = 1; i < this.floorAmount; i++) {
 			if (i == 1) {
-				this.floorButtonList.push(new floorButton(i, "up"));
+				this.floorButtonList.push(new floorButton(i, "up")); //First Floor
 			} else {
 				this.floorButtonList.push(new floorButton(i, "up"));
 				this.floorButtonList.push(new floorButton(i, "down"));
 			}
 		}
-		this.floorButtonList.push(new floorButton(this.floorAmount, "down"));
+		this.floorButtonList.push(new floorButton(this.floorAmount, "down")); //Last floor
 	}
 	createElevatorList(elevatorAmount) {
 		for (let i = 1; i <= this.elevatorAmount; i++) {
@@ -111,7 +111,7 @@ class Column {
 	}
 }
 class Elevator {
-	constructor(id, status, position, direction, elevatorAmount) {
+	constructor(id, status, position, direction, floorAmount) {
 		this.id = id;
 		this.status = status;
 		this.position = position;
@@ -119,7 +119,7 @@ class Elevator {
 		this.requestList = [];
 		this.panelButtonList = [];
 		// Panel Button
-		for (let i = 0; i < elevatorAmount; i++) {
+		for (let i = 0; i < floorAmount; i++) {
 			this.panelButtonList[i] = new panelButton(i + 1);
 		}
 	}
@@ -148,7 +148,7 @@ class Elevator {
 					" Direction: ",
 					this.direction
 				);
-				this.moveElevatorUp(requestedFloor);
+				this.moveUp(requestedFloor);
 				this.status = "stopped";
 				console.log(
 					"Elevator: ",
@@ -171,7 +171,7 @@ class Elevator {
 					" Direction: ",
 					this.direction
 				);
-				this.moveElevatorDown(requestedFloor);
+				this.moveDown(requestedFloor);
 				this.status = "stopped";
 				console.log(
 					"Elevator: ",
@@ -189,14 +189,14 @@ class Elevator {
 			this.status = "idle";
 		}
 	}
-	moveElevatorUp(requestedFloor) {
+	moveUp(requestedFloor) {
 		while (this.position !== requestedFloor) {
 			this.position += 1;
 			console.log("---- Elevator is moving:  " + this.position);
 		}
 	}
 
-	moveElevatorDown(requestedFloor) {
+	moveDown(requestedFloor) {
 		while (this.position !== requestedFloor) {
 			this.position -= 1;
 			console.log("Elevator is moving: " + this.position);
@@ -300,6 +300,6 @@ function Scenario3() {
 	column1.requestFloor(elevator, 3);
 }
 
-// Scenario1();
-// Scenario2();
-// Scenario3();
+Scenario1();
+Scenario2();
+Scenario3();
