@@ -53,8 +53,8 @@ ruby .\Residential_Controller.rb
 
 ## :white_check_mark: Requirements
 
-Python and Ruby
 <a href="https://marketplace.visualstudio.com/items?itemName=CodeBoxx.pseudo-algo" target="_blank">CodeBoxx Pseudocode Syntax</a>
+Python and Ruby
 
  <h4 align="center">
  Made with ❤️ in Quebec by Saad
