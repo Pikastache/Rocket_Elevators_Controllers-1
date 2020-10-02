@@ -20,7 +20,7 @@
 
 🔥 Rocket_Elevators_Controllers.js : implementation of the algorithm in javascript:
 
-- Testing section : you can use Node js to run the script
+- Testing section : you can use Node js or the html interface to run the script
 
 ```sh
 node Residential_Controller.js
@@ -48,7 +48,7 @@ ruby .\Residential_Controller.rb
 
 ## 📽️ Video demo:
 
-<a href="https://youtu.be/OQV_e5cA7wc" target="_blank"> Link to video demo: Algorithms</a>
+<a href="https://youtu.be/OQV_e5cA7wc" target="_blank"> Link to video demo: Algorithms</a> </br>
 <a href="https://youtu.be/OQV_e5cA7wc" target="_blank"> Link to video demo: Js, Python and Ruby implementation</a>
 
 ## :white_check_mark: Requirements
