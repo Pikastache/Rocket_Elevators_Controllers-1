@@ -1,5 +1,6 @@
-from colorama import Fore, Back, Style
-
+# --------------------------------------
+# Residential controller python version
+# --------------------------------------
 
 class Column:
     def __init__(self, floorAmount, elevatorAmount):
