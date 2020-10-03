@@ -26,7 +26,7 @@
 node Residential_Controller.js
 ```
 
-- Testing interface (html+ bootstrap)
+- Testing interface: index.html and console (html+ Bootstrap)
 
 🔥 Rocket_Elevators_Controllers.py: implementation of the algorithm in Python:
 
@@ -48,8 +48,8 @@ ruby .\Residential_Controller.rb
 
 ## 📽️ Video demo:
 
-<a href="https://youtu.be/OQV_e5cA7wc" target="_blank"> Link to video demo: Algorithms</a> </br>
-<a href="https://youtu.be/OQV_e5cA7wc" target="_blank"> Link to video demo: Js, Python and Ruby implementation</a>
+<a href="https://vimeo.com/464412061" target="_blank"> Link to video demo (Vimeo): Js, Python and Ruby implementation</a></br>
+<a href="https://youtu.be/OQV_e5cA7wc" target="_blank"> Link to video demo: Algorithms</a>
 
 ## :white_check_mark: Requirements
 
