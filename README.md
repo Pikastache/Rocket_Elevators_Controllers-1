@@ -3,7 +3,7 @@
   <!-- Saad Eddine FEKI -->
 </div>
 
-<h1 align="center">  Rocket Elevators</h1>
+<h1 align="center"> 🚀 Rocket Elevators</h1>
 
 <!-- Status -->
 
