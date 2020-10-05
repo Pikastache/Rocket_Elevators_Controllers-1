@@ -1,0 +1,13 @@
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\obj\Debug\netcoreapp3.1\Commercial_Controller.csprojAssemblyReference.cache
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\obj\Debug\netcoreapp3.1\Commercial_Controller.AssemblyInfoInputs.cache
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\obj\Debug\netcoreapp3.1\Commercial_Controller.AssemblyInfo.cs
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\obj\Debug\netcoreapp3.1\Commercial_Controller.csproj.CoreCompileInputs.cache
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\bin\Debug\netcoreapp3.1\Commercial_Controller.exe
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\bin\Debug\netcoreapp3.1\Commercial_Controller.deps.json
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\bin\Debug\netcoreapp3.1\Commercial_Controller.runtimeconfig.json
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\bin\Debug\netcoreapp3.1\Commercial_Controller.runtimeconfig.dev.json
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\bin\Debug\netcoreapp3.1\Commercial_Controller.dll
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\bin\Debug\netcoreapp3.1\Commercial_Controller.pdb
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\obj\Debug\netcoreapp3.1\Commercial_Controller.dll
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\obj\Debug\netcoreapp3.1\Commercial_Controller.pdb
+D:\CodeBoxx\Odyssey\Rocket_Elevators_Controllers\Commercial_Controller\obj\Debug\netcoreapp3.1\Commercial_Controller.genruntimeconfig.cache
