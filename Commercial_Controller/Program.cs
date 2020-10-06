@@ -3,10 +3,8 @@
 *        |______________________________________ |
 *
 *
-*   Method 1: RequestElevator (FloorNumber)
-*   This method represents an elevator request on a floor or basement.
-*   Method 2: AssignElevator (RequestedFloor)
-*   This method will be used for the requests made on the first floor.
+*   Author: Saad Eddine
+*   CodeBoxx 
 */
 
 
