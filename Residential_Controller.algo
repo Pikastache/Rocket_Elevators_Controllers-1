@@ -163,7 +163,7 @@ SEQUENCE getBestElevator WITH requestedFloor AND direction
 
     ' PRiority To elevator in service'
     SET bestFit TO NULL
-    SET closestElevator TO 1       'Default '                                   
+    SET closestElevator TO 10       'Default '                                   
         FOR EACH elevator IN elevatorList OF column 
             CALL isApproaching   WITH elevator AND floorCallButton RETURNING isApproaching
             CALL isSameDirection  WITH elevator direction AND direction RETURNING sameDirection  'TRUE or FALSE'
