@@ -112,15 +112,8 @@ namespace Commercial_Controller
                             columnList[i].endZone = initStart + (this.floorPercolumn);
 
                         }
-
-
-
-
                     }
-
                 }
-
-
             }
 
             // if we have a extra number of floors we added it to the last column !!
@@ -176,8 +169,6 @@ namespace Commercial_Controller
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(" Position: " + elevator.position + " sent to: " + FloorNumber);
             Console.ResetColor();
-
-
 
             elevator.moveElevator(FloorNumber);
             elevator.moveElevator(1);
