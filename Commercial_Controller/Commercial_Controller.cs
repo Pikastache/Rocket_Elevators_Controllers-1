@@ -27,35 +27,35 @@ namespace Commercial_Controller
         public int amountElevatorPerColumn;
         public List<Column> columnList = new List<Column>();
         public List<floorButton> floorButton = new List<floorButton>();
+        public String status;
 
 
         /** constructor **/
 
-        public Battery(int amountColumns, int amountFloors, int amountBasements, int amountElevatorPerColumn)
+        public Battery(int amountColumns, int amountFloors, int amountBasements, int amountElevatorPerColumn, String status)
         {
             this.amountColumns = amountColumns;
             this.amountFloors = amountFloors;
             this.amountBasements = amountBasements;
             this.amountElevatorPerColumn = amountElevatorPerColumn;
             this.createfloorButton(this.amountFloors);
+            this.status = "OnLine";
 
             // Set List of columns
             this.setColumnsList();
             //Set number of floor per column and define service zone (start/end) for each column
-            this.setFloorPerColumn(amountBasements, amountFloors, amountColumns);
+            this.floorPerColumn(amountBasements, amountFloors, amountColumns);
 
-            Console.WriteLine("Battery is created: Ok !");
+            // Console.WriteLine("Battery is created: Ok !");
         }
         // calculate amount of floor per column and define limits of service for each column
-        public void setFloorPerColumn(int amountBasements, int amountFloors, int amountColumns)
+        public void floorPerColumn(int amountBasements, int amountFloors, int amountColumns)
         {
-
             // how much floor per column?
-            int remainder = 0;
+            int remainder = 0; // the rest of division
             if (amountBasements == 0)
             {
                 this.floorPercolumn = amountFloors / amountColumns;
-
             }
             else if (amountColumns == 1)
             {
@@ -104,7 +104,6 @@ namespace Commercial_Controller
                         {
                             columnList[i].startZone = 2;
                             columnList[i].endZone = this.floorPercolumn;
-
                         }
                         else
                         {
@@ -121,10 +120,8 @@ namespace Commercial_Controller
             // we push the end zone of the last column to limit !!!
             if (remainder > 0)
             {
-                Console.WriteLine("Aleeeeert" + remainder + "Voila " + amountFloors + "%" + amountColumns);
                 columnList[columnList.Count - 1].endZone = this.floorPercolumn + remainder;
             }
-
         }
         public void setColumnsList()
         {
@@ -146,7 +143,6 @@ namespace Commercial_Controller
                 {
                     candidate = column;
                 }
-
             }
             return candidate;
         }
@@ -154,48 +150,33 @@ namespace Commercial_Controller
         // This method represents an elevator request on a floor or basement.
         public void RequestElevator(int FloorNumber)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(" User at : " + FloorNumber + " wants to go to RC");
-            Console.ResetColor();
+            Console.WriteLine(">> User at : " + FloorNumber + " wants to go to RC <<");
 
             // find the right column and get the best elevator
             Column column = getColumn(FloorNumber);
             Elevator elevator = column.bestElevator(FloorNumber);
 
-            Console.Write("- Elevator  ");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(column.id);
-            Console.Write(" [" + elevator.id + "]");
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(" Position: " + elevator.position + " sent to: " + FloorNumber);
-            Console.ResetColor();
+            Console.WriteLine("- Elevator  " + column.id + " [" + elevator.id + "]" + " Position: " + elevator.position + " sent to: " + FloorNumber);
 
             elevator.doors.openDoor();
-
+            // Safety Check
             if (elevator.safetyFirst(elevator.weightmax, elevator.sensor))
             {
-                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Safety check: is ok !");
                 elevator.doors.closeDoor();
-                Console.ResetColor();
             }
-            //elevator.doors.closeDoor();
-
+            // Move Elevator
             elevator.moveElevator(FloorNumber);
 
             elevator.doors.openDoor();
             if (elevator.safetyFirst(elevator.weightmax, elevator.sensor))
             {
-                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Safety check: is ok !");
                 elevator.doors.closeDoor();
-                Console.ResetColor();
             }
 
             // move the elevator to RC
             elevator.moveElevator(1);
-
             elevator.doors.openDoor();
         }
         // ***************************
@@ -203,22 +184,48 @@ namespace Commercial_Controller
         //the first floor.
         public void AssignElevator(int RequestedFloor)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("Someone at RC wants to go to the : ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(RequestedFloor);
-            Console.ResetColor();
+            Console.WriteLine(">>> Someone at RC wants to go to the : " + RequestedFloor + "<<<");
 
-            // Best column
+            // find the correespondante column
             Column column = getColumn(RequestedFloor);
-            //Console.WriteLine("----------> getColumn return : " + column.id);
-            Elevator bestFit = null;
-            // The priority is for the elevator in mvt
+            Elevator bestFit = findBestElevator(RequestedFloor, column);
+
+            Console.WriteLine("- The elevetor: " + column.id + " [" + bestFit.id + "]" + " Position: " + bestFit.position + " to RC");
+            bestFit.doors.openDoor();
+
+            if (bestFit.safetyFirst(bestFit.weightmax, bestFit.sensor))
+            {
+                Console.WriteLine("Safety check: is ok !");
+                bestFit.doors.closeDoor();
+            }
+
+            // To assign a elevator : STEP 1: we move elevator to Rc
+            bestFit.moveElevator(1);
+
+            Console.WriteLine("- stopover: " + column.id + " [" + bestFit.id + "]" + " Position : " + bestFit.position + " Is sent to : " + RequestedFloor);
+
+            bestFit.doors.openDoor();
+
+            if (bestFit.safetyFirst(bestFit.weightmax, bestFit.sensor))
+            {
+                Console.WriteLine("Safety check: is ok !");
+                bestFit.doors.closeDoor();
+            }
+            // STEP 2: we move elevator to RequestedFloor
+            bestFit.moveElevator(RequestedFloor);
+            bestFit.doors.openDoor();
+        }
+
+        // return the best elevator To Assign
+        public Elevator findBestElevator(int RequestedFloor, Column column)
+        {
+            // The priority is for the elevator in mvt !important
             List<Elevator> elevatorsInMvtList = new List<Elevator>();
             // Second priority for the Idle
             List<Elevator> elevatorIdleList = new List<Elevator>();
             // list of others if no much
             List<Elevator> canBeList = new List<Elevator>();
+            Elevator bestFitElevator = null;
 
             foreach (Elevator elevator in column.elevatorsList)
             {
@@ -228,12 +235,11 @@ namespace Commercial_Controller
                 }
                 else
                     elevatorsInMvtList.Add(elevator);
-
             }
 
             if (elevatorIdleList.Count > 0)
             {
-                bestFit = elevatorIdleList.OrderBy(elevator => Math.Abs(elevator.position - 1)).First();
+                bestFitElevator = elevatorIdleList.OrderBy(elevator => Math.Abs(elevator.position - 1)).First();
             }
             else
             {   /** Every elevator have a rating (Score): the rating is based in the distance between elevator and the next destination + distance RC **/
@@ -245,60 +251,10 @@ namespace Commercial_Controller
                     elevator.rating = rating;
                 }
                 // we sort the list a take the first one
-                bestFit = elevatorsInMvtList.OrderBy(elevator => elevator.rating).First();
-
+                bestFitElevator = elevatorsInMvtList.OrderBy(elevator => elevator.rating).First();
             }
-
-            Console.Write("- Step 1:  ");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(column.id);
-
-            Console.Write(" [" + bestFit.id + "]");
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(" Position: " + bestFit.position + " to RC");
-            Console.ResetColor();
-
-            bestFit.doors.openDoor();
-            if (bestFit.safetyFirst(bestFit.weightmax, bestFit.sensor))
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Safety check: is ok !");
-                bestFit.doors.closeDoor();
-                Console.ResetColor();
-            }
-
-            bestFit.moveElevator(1);
-            // bestFit.doors.closeDoor();
-
-
-            Console.Write("- Step 2: ");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(column.id + " [" + bestFit.id + "]");
-            Console.ResetColor();
-            Console.Write(" Position : ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write(bestFit.position);
-            Console.ResetColor();
-            Console.Write(" Is sent to : ");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(RequestedFloor);
-            Console.ResetColor();
-
-            bestFit.doors.openDoor();
-            if (bestFit.safetyFirst(bestFit.weightmax, bestFit.sensor))
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Safety check: is ok !");
-                bestFit.doors.closeDoor();
-                Console.ResetColor();
-            }
-
-            bestFit.moveElevator(RequestedFloor);
-            bestFit.doors.openDoor();
-
+            return bestFitElevator;
         }
-
         public void scenario1()
         {
             this.columnList[1].elevatorsList[0].direction = "down";
@@ -375,7 +331,7 @@ namespace Commercial_Controller
             RequestElevator(54);
         }
 
-        // // // -------------------SCENARIO 4-------------------------
+        // -------------------SCENARIO 4-------------------------
         public void scenario4()
         {
             this.columnList[0].elevatorsList[0].direction = "Idle";
@@ -414,14 +370,12 @@ namespace Commercial_Controller
         }
 
     }
-
-
     class Column
     {
         public char id;
         public int amountElevatorPerColumn;
-        public int startZone;
-        public int endZone;
+        public int startZone; //Define the first floor of service
+        public int endZone;     //Define the last floor of service
         public List<Elevator> elevatorsList = new List<Elevator>();
 
         public Column(char id, int amountFloors, int amountBasements, int amountElevatorPerColumn)
@@ -434,7 +388,6 @@ namespace Commercial_Controller
                 Elevator elevator = new Elevator(i + 1, 1, "Idle", 1);
                 elevatorsList.Add(elevator);
             }
-
         }
         // create list of elevators
         public void createElevatorsList()
@@ -458,7 +411,7 @@ namespace Commercial_Controller
                 // for the direction down 
                 if (FloorNumber > 1)
                 {
-                    if (elevator.direction == "Down" && FloorNumber < elevator.position)
+                    if (elevator.direction == "down" && FloorNumber < elevator.position)
                     {
                         elevatorsInMvtList.Add(elevator);
                     }
@@ -500,18 +453,11 @@ namespace Commercial_Controller
                     rating = Math.Abs(elevator.nextDestination - elevator.position) + Math.Abs(elevator.nextDestination - FloorNumber);
                     elevator.rating = rating;
                 }
-
                 bestFit = elevatorsInMvtList.OrderBy(elevator => elevator.rating).First();
-
-
-
-
             }
             else if (elevatorIdleList.Count > 0)
             {
-
                 // if no best elevator in mvt we take the best Idle
-
                 int rating = 0;
                 foreach (Elevator elevator in elevatorIdleList)
                 {
@@ -520,33 +466,25 @@ namespace Commercial_Controller
                 }
 
                 bestFit = elevatorIdleList.OrderBy(elevator => elevator.rating).First();
-
-
-
-
             }
             else
             {
-                // If no 1. best elevator on mvt
-                //       2. best nearest Idle
-                //       3. take the nearest elevator when he become availlable 
+                /************************************************
+                *  If no 1. best elevator on mvt
+                *       2. best nearest Idle
+                *       ==> take the nearest elevator when he become availlable 
+                **/
+
                 int rating = 0;
                 foreach (Elevator elevator in canBeList)
                 {
                     rating = Math.Abs(elevator.position - FloorNumber);
                     elevator.rating = rating;
                 }
-
                 bestFit = canBeList.OrderBy(elevator => elevator.rating).First();
             }
-
-
             return bestFit;
-
         }
-
-
-
     }
     class Elevator
     {
@@ -569,10 +507,7 @@ namespace Commercial_Controller
             this.position = position;
             this.direction = direction;
             this.nextDestination = Destination;
-
-
         }
-
         public void manageRequestList(Column column, int requestedFloor)
         {
             if (column.startZone > 0)
@@ -583,7 +518,6 @@ namespace Commercial_Controller
                     this.requestList.Sort();
                     this.requestList.Reverse();
                 }
-
             }
             else if (column.startZone < 0)
             {
@@ -603,19 +537,12 @@ namespace Commercial_Controller
             {
                 while (this.position < destination)
                 {
-
                     this.position++;
-
                     if (this.position != 0)
                     {
-                        Console.Write("Moving to: [ ");
-                        Console.ForegroundColor = ConsoleColor.DarkYellow;
-                        Console.Write(this.position);
-                        Console.ResetColor();
-                        Console.WriteLine(" ] ");
+                        Console.WriteLine("Moving to: [ " + this.position + " ] ");
 
                     }
-
                 }
             }
             if (this.position > destination)
@@ -623,18 +550,10 @@ namespace Commercial_Controller
                 while (this.position > destination)
                 {
                     this.position--;
-
-
                     if (this.position != 0)
                     {
-                        Console.Write("Moving to: [ ");
-                        Console.ForegroundColor = ConsoleColor.DarkYellow;
-                        Console.Write(this.position);
-                        Console.ResetColor();
-                        Console.WriteLine(" ] ");
+                        Console.WriteLine("Moving to: [ " + this.position + " ] ");
                     }
-
-
                 }
             }
 
@@ -642,30 +561,18 @@ namespace Commercial_Controller
         public Boolean safetyFirst(int weight, Boolean sensor)
         {
             return (this.weightmax == weight && sensor == true);
-
-
         }
-
-
-
     }
     public class Doors
     {
         public void openDoor()
         {
-            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Doors ]<>[");
-            Console.ResetColor();
-            //this.closeDoor();
         }
-
         public void closeDoor()
         {
-            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Doors >[]<");
-            Console.ResetColor();
         }
-
     }
     public class floorButton
     {
@@ -682,20 +589,36 @@ namespace Commercial_Controller
     {
         static void Main(string[] args)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Battery mainBattery = new Battery(4, 66, 6, 5);
 
-            Console.ResetColor();
+            Battery mainBattery = new Battery(4, 66, 6, 5, "OnLine");
+
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("---------------------[     Battery is Online         ]---------------------");
+
+
+            Console.WriteLine("---------------------[ Generic repartition of Columns]---------------------");
             for (int i = 0; i < mainBattery.columnList.Count; i++)
             {
                 Console.WriteLine(String.Format("{0,-10} | {1,-10} | {2,-10}", mainBattery.columnList[i].id, mainBattery.columnList[i].startZone, mainBattery.columnList[i].endZone));
             }
+            Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("---------------------[ Scenario 1 ! ]---------------------");
+            Console.ResetColor();
             mainBattery.scenario1();
+
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("---------------------[ Scenario 2 ! ]---------------------");
+            Console.ResetColor();
             mainBattery.scenario2();
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("---------------------[ Scenario 3 ! ]---------------------");
+            Console.ResetColor();
             mainBattery.scenario3();
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("---------------------[ Scenario 4 ! ]---------------------");
+            Console.ResetColor();
             mainBattery.scenario4();
 
             Console.Write("-----------------------[ END OF TESTING ! ]---------------------");
