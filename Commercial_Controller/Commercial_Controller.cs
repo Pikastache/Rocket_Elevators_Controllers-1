@@ -4,8 +4,26 @@
 *
 *
 *   Author: Saad Eddine
-*   CodeBoxx 
-*/
+*   SUMMARY:
+*   Classes:	- Battery
+*				- Column
+*				- Elevator
+*				- Doors
+*               - floorButton
+*	Main function: 	
+*               - AssignElevator: used for the requests made on the first     floor.
+*						|-> getColumn return the correspandant column for destination
+*						|-> moveElevator is a function to move elevator to destination
+*						|-> findBestElevator return the best fit elevator for assignElevator
+
+*				- RequestElevator: Used to respond to arequest on a floor or basement.
+*						|-> getColumn return the correspandant column for destination
+*						|-> moveElevator is a function to move elevator to destination
+*						|-> bestElevator return the best fit elevator for RequestElevator
+*				- closeDoors
+*				- openDoors
+*
+ */
 
 
 
