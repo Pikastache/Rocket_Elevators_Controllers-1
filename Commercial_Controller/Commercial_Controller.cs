@@ -43,8 +43,8 @@ namespace Commercial_Controller
 
             // Set List of columns
             this.setColumnsList();
-            //Set number of floor per column and define service zone (start/end) for each column
-            this.floorPerColumn(amountBasements, amountFloors, amountColumns);
+            // Create list of floors for each column
+            this.createfloorList(amountBasements, amountFloors, amountColumns);
 
             // Console.WriteLine("Battery is created: Ok !");
         }
@@ -81,7 +81,7 @@ namespace Commercial_Controller
             else  // second case: many columns
             {
                 int initStart = 1;
-                //we have zero ! basements
+                // IF we have zero ! basements
                 if (this.amountBasements == 0)
                 {
                     for (int i = 0; i < columnList.Count; i++)
@@ -91,7 +91,7 @@ namespace Commercial_Controller
                         initStart = columnList[i].endZone + 1;
                     }
                 }
-                //we have basements: will be affected to the first column
+                // IF we have basements: will be affected to the first column
                 else
                 {
                     columnList[0].startZone = -amountBasements;
@@ -123,6 +123,30 @@ namespace Commercial_Controller
                 columnList[columnList.Count - 1].endZone = this.floorPercolumn + remainder;
             }
         }
+        public void createfloorList(int amountBasements, int amountFloors, int amountColumns)
+        {
+            this.floorPerColumn(amountBasements, amountFloors, amountColumns);
+            foreach (Column column in this.columnList)
+            {
+                if (column.id == 'A')
+                {
+                    column.floorList.Add(1);
+                    for (int i = -1; i >= -amountBasements; i--)
+                    {
+                        column.floorList.Add(i);
+                    }
+                }
+                else
+                {
+                    column.floorList.Add(1);
+                    for (int i = column.startZone; i <= column.endZone; i++)
+                    {
+                        column.floorList.Add(i);
+                    }
+                }
+            }
+        }
+
         public void setColumnsList()
         {
             char c1 = 'A';
@@ -255,107 +279,7 @@ namespace Commercial_Controller
             }
             return bestFitElevator;
         }
-        public void scenario1()
-        {
-            this.columnList[1].elevatorsList[0].direction = "down";
-            this.columnList[1].elevatorsList[0].position = 20;
-            this.columnList[1].elevatorsList[0].nextDestination = 5;
 
-            this.columnList[1].elevatorsList[1].direction = "up";
-            this.columnList[1].elevatorsList[1].position = 3;
-            this.columnList[1].elevatorsList[1].nextDestination = 15;
-
-            this.columnList[1].elevatorsList[2].direction = "down";
-            this.columnList[1].elevatorsList[2].position = 13;
-            this.columnList[1].elevatorsList[2].nextDestination = 1;
-
-            this.columnList[1].elevatorsList[3].direction = "down";
-            this.columnList[1].elevatorsList[3].position = 15;
-            this.columnList[1].elevatorsList[3].nextDestination = 2;
-
-            this.columnList[1].elevatorsList[4].direction = "down";
-            this.columnList[1].elevatorsList[4].position = 6;
-            this.columnList[1].elevatorsList[4].nextDestination = 1;
-
-            AssignElevator(20);
-        }
-
-        public void scenario2()
-        {
-            this.columnList[2].elevatorsList[0].direction = "up";
-            this.columnList[2].elevatorsList[0].position = 1;
-            this.columnList[2].elevatorsList[0].nextDestination = 21;
-
-            this.columnList[2].elevatorsList[1].direction = "up";
-            this.columnList[2].elevatorsList[1].position = 23;
-            this.columnList[2].elevatorsList[1].nextDestination = 28;
-
-            this.columnList[2].elevatorsList[2].direction = "down";
-            this.columnList[2].elevatorsList[2].position = 33;
-            this.columnList[2].elevatorsList[2].nextDestination = 1;
-
-            this.columnList[2].elevatorsList[3].direction = "down";
-            this.columnList[2].elevatorsList[3].position = 40;
-            this.columnList[3].elevatorsList[3].nextDestination = 24;
-
-            this.columnList[2].elevatorsList[4].direction = "down";
-            this.columnList[2].elevatorsList[4].position = 39;
-            this.columnList[2].elevatorsList[4].nextDestination = 1;
-
-            AssignElevator(36);
-        }
-
-        // -------------------SCENARIO 3-------------------------
-        public void scenario3()
-        {
-            this.columnList[3].elevatorsList[0].direction = "down";
-            this.columnList[3].elevatorsList[0].position = 58;
-            this.columnList[3].elevatorsList[0].nextDestination = 1;
-
-            this.columnList[3].elevatorsList[1].direction = "up";
-            this.columnList[3].elevatorsList[1].position = 50;
-            this.columnList[3].elevatorsList[1].nextDestination = 60;
-
-            this.columnList[3].elevatorsList[2].direction = "up";
-            this.columnList[3].elevatorsList[2].position = 46;
-            this.columnList[3].elevatorsList[2].nextDestination = 58;
-
-            this.columnList[3].elevatorsList[3].direction = "up";
-            this.columnList[3].elevatorsList[3].position = 1;
-            this.columnList[3].elevatorsList[3].nextDestination = 54;
-
-            this.columnList[3].elevatorsList[4].direction = "down";
-            this.columnList[3].elevatorsList[4].position = 60;
-            this.columnList[3].elevatorsList[4].nextDestination = 1;
-
-            RequestElevator(54);
-        }
-
-        // -------------------SCENARIO 4-------------------------
-        public void scenario4()
-        {
-            this.columnList[0].elevatorsList[0].direction = "Idle";
-            this.columnList[0].elevatorsList[0].position = -4;
-            this.columnList[0].elevatorsList[0].nextDestination = 0;
-
-            this.columnList[0].elevatorsList[1].direction = "Idle";
-            this.columnList[0].elevatorsList[1].position = 1;
-            this.columnList[0].elevatorsList[1].nextDestination = 0;
-
-            this.columnList[0].elevatorsList[2].direction = "down";
-            this.columnList[0].elevatorsList[2].position = -3;
-            this.columnList[0].elevatorsList[2].nextDestination = -5;
-
-            this.columnList[0].elevatorsList[3].direction = "up";
-            this.columnList[0].elevatorsList[3].position = -6;
-            this.columnList[0].elevatorsList[3].nextDestination = 1;
-
-            this.columnList[0].elevatorsList[4].direction = "down";
-            this.columnList[0].elevatorsList[4].position = -1;
-            this.columnList[0].elevatorsList[4].nextDestination = -6;
-
-            RequestElevator(-3);
-        }
         public void createfloorButton(int amountFloors)
         {
             for (int i = -this.amountBasements; i < 1; i++)
@@ -376,6 +300,7 @@ namespace Commercial_Controller
         public int amountElevatorPerColumn;
         public int startZone; //Define the first floor of service
         public int endZone;     //Define the last floor of service
+        public List<int> floorList = new List<int>();
         public List<Elevator> elevatorsList = new List<Elevator>();
 
         public Column(char id, int amountFloors, int amountBasements, int amountElevatorPerColumn)
@@ -598,28 +523,122 @@ namespace Commercial_Controller
 
 
             Console.WriteLine("---------------------[ Generic repartition of Columns]---------------------");
-            for (int i = 0; i < mainBattery.columnList.Count; i++)
+
+            foreach (Column column in mainBattery.columnList)
             {
-                Console.WriteLine(String.Format("{0,-10} | {1,-10} | {2,-10}", mainBattery.columnList[i].id, mainBattery.columnList[i].startZone, mainBattery.columnList[i].endZone));
+                Console.WriteLine("Column  " + column.id + " -- Floors in service =  " + String.Join(" | ", column.floorList));
             }
+
+            // ------------------------------ Testing Section -----------------------------------
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("---------------------[ Scenario 1 ! ]---------------------");
             Console.ResetColor();
-            mainBattery.scenario1();
 
+            mainBattery.columnList[1].elevatorsList[0].direction = "down";
+            mainBattery.columnList[1].elevatorsList[0].position = 20;
+            mainBattery.columnList[1].elevatorsList[0].nextDestination = 5;
+
+            mainBattery.columnList[1].elevatorsList[1].direction = "up";
+            mainBattery.columnList[1].elevatorsList[1].position = 3;
+            mainBattery.columnList[1].elevatorsList[1].nextDestination = 15;
+
+            mainBattery.columnList[1].elevatorsList[2].direction = "down";
+            mainBattery.columnList[1].elevatorsList[2].position = 13;
+            mainBattery.columnList[1].elevatorsList[2].nextDestination = 1;
+
+            mainBattery.columnList[1].elevatorsList[3].direction = "down";
+            mainBattery.columnList[1].elevatorsList[3].position = 15;
+            mainBattery.columnList[1].elevatorsList[3].nextDestination = 2;
+
+            mainBattery.columnList[1].elevatorsList[4].direction = "down";
+            mainBattery.columnList[1].elevatorsList[4].position = 6;
+            mainBattery.columnList[1].elevatorsList[4].nextDestination = 1;
+
+            mainBattery.AssignElevator(20);
+
+            Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("---------------------[ Scenario 2 ! ]---------------------");
             Console.ResetColor();
-            mainBattery.scenario2();
+            mainBattery.columnList[2].elevatorsList[0].direction = "up";
+            mainBattery.columnList[2].elevatorsList[0].position = 1;
+            mainBattery.columnList[2].elevatorsList[0].nextDestination = 21;
+
+            mainBattery.columnList[2].elevatorsList[1].direction = "up";
+            mainBattery.columnList[2].elevatorsList[1].position = 23;
+            mainBattery.columnList[2].elevatorsList[1].nextDestination = 28;
+
+            mainBattery.columnList[2].elevatorsList[2].direction = "down";
+            mainBattery.columnList[2].elevatorsList[2].position = 33;
+            mainBattery.columnList[2].elevatorsList[2].nextDestination = 1;
+
+            mainBattery.columnList[2].elevatorsList[3].direction = "down";
+            mainBattery.columnList[2].elevatorsList[3].position = 40;
+            mainBattery.columnList[3].elevatorsList[3].nextDestination = 24;
+
+            mainBattery.columnList[2].elevatorsList[4].direction = "down";
+            mainBattery.columnList[2].elevatorsList[4].position = 39;
+            mainBattery.columnList[2].elevatorsList[4].nextDestination = 1;
+
+            mainBattery.AssignElevator(36);
+
+
+            // -------------------SCENARIO 3-------------------------mainBattery
+            Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("---------------------[ Scenario 3 ! ]---------------------");
             Console.ResetColor();
-            mainBattery.scenario3();
+            mainBattery.columnList[3].elevatorsList[0].direction = "down";
+            mainBattery.columnList[3].elevatorsList[0].position = 58;
+            mainBattery.columnList[3].elevatorsList[0].nextDestination = 1;
+
+            mainBattery.columnList[3].elevatorsList[1].direction = "up";
+            mainBattery.columnList[3].elevatorsList[1].position = 50;
+            mainBattery.columnList[3].elevatorsList[1].nextDestination = 60;
+
+            mainBattery.columnList[3].elevatorsList[2].direction = "up";
+            mainBattery.columnList[3].elevatorsList[2].position = 46;
+            mainBattery.columnList[3].elevatorsList[2].nextDestination = 58;
+
+            mainBattery.columnList[3].elevatorsList[3].direction = "up";
+            mainBattery.columnList[3].elevatorsList[3].position = 1;
+            mainBattery.columnList[3].elevatorsList[3].nextDestination = 54;
+
+            mainBattery.columnList[3].elevatorsList[4].direction = "down";
+            mainBattery.columnList[3].elevatorsList[4].position = 60;
+            mainBattery.columnList[3].elevatorsList[4].nextDestination = 1;
+
+            mainBattery.RequestElevator(54);
+
+
+            // -------------------SCENARIO 4-------------------------
+            Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("---------------------[ Scenario 4 ! ]---------------------");
             Console.ResetColor();
-            mainBattery.scenario4();
+
+            mainBattery.columnList[0].elevatorsList[0].direction = "Idle";
+            mainBattery.columnList[0].elevatorsList[0].position = -4;
+            mainBattery.columnList[0].elevatorsList[0].nextDestination = 0;
+
+            mainBattery.columnList[0].elevatorsList[1].direction = "Idle";
+            mainBattery.columnList[0].elevatorsList[1].position = 1;
+            mainBattery.columnList[0].elevatorsList[1].nextDestination = 0;
+
+            mainBattery.columnList[0].elevatorsList[2].direction = "down";
+            mainBattery.columnList[0].elevatorsList[2].position = -3;
+            mainBattery.columnList[0].elevatorsList[2].nextDestination = -5;
+
+            mainBattery.columnList[0].elevatorsList[3].direction = "up";
+            mainBattery.columnList[0].elevatorsList[3].position = -6;
+            mainBattery.columnList[0].elevatorsList[3].nextDestination = 1;
+
+            mainBattery.columnList[0].elevatorsList[4].direction = "down";
+            mainBattery.columnList[0].elevatorsList[4].position = -1;
+            mainBattery.columnList[0].elevatorsList[4].nextDestination = -6;
+
+            mainBattery.RequestElevator(-3);
 
             Console.Write("-----------------------[ END OF TESTING ! ]---------------------");
 
