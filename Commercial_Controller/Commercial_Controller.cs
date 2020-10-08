@@ -22,7 +22,8 @@
 *						|-> bestElevator return the best fit elevator for RequestElevator
 *				- closeDoors
 *				- openDoors
-*
+* Priority is managed by 3 lists and Rating system based on 3 elements : floor number of 
+* the user, elevator current position and RC as origin
  */
 
 
@@ -297,7 +298,7 @@ namespace Commercial_Controller
             }
             return bestFitElevator;
         }
-
+        // create a list of buttons
         public void createfloorButton(int amountFloors)
         {
             for (int i = -this.amountBasements; i < 1; i++)
@@ -340,7 +341,6 @@ namespace Commercial_Controller
                 this.elevatorsList.Add(new Elevator(i, 1, "Idle", 1));
             }
         }
-
 
         public Elevator bestElevator(int FloorNumber)
         {
@@ -475,7 +475,7 @@ namespace Commercial_Controller
         // methodes to move Elevator
         public void moveElevator(int destination)
         {
-
+            // Move up 
             if (this.position < destination)
             {
                 while (this.position < destination)
@@ -488,6 +488,7 @@ namespace Commercial_Controller
                     }
                 }
             }
+            // Move down
             if (this.position > destination)
             {
                 while (this.position > destination)

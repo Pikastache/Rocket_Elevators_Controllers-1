@@ -24,7 +24,8 @@
 *				- Abs: return absolute value
 *				- closeDoors
 *				- openDoors
-*
+* Priority is managed by 3 lists and Rating system based on 3 elements : floor number of
+* the user, elevator current position and RC as origin
  */
 
 package main
