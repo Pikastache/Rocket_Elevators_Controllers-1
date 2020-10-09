@@ -194,12 +194,13 @@ namespace Commercial_Controller
         public void RequestElevator(int FloorNumber)
         {
             Console.WriteLine(">> User at : " + FloorNumber + " wants to go to RC <<");
+            Console.WriteLine("----------------------------------------------------------");
 
             // find the right column and get the best elevator
             Column column = getColumn(FloorNumber);
             Elevator elevator = column.bestElevator(FloorNumber);
 
-            Console.WriteLine("- Elevator  " + column.id + " [" + elevator.id + "]" + " Position: " + elevator.position + " sent to: " + FloorNumber);
+            Console.WriteLine("- Select elevator  " + column.id + " [" + elevator.id + "]" + " Position: " + elevator.position + " sent to: " + FloorNumber);
 
             elevator.doors.openDoor();
             // Safety Check
@@ -228,12 +229,13 @@ namespace Commercial_Controller
         public void AssignElevator(int RequestedFloor)
         {
             Console.WriteLine(">>> Someone at RC wants to go to the : " + RequestedFloor + "<<<");
+            Console.WriteLine("----------------------------------------------------------\n");
 
             // find the correespondante column
             Column column = getColumn(RequestedFloor);
             Elevator bestFit = findBestElevator(RequestedFloor, column);
 
-            Console.WriteLine("- The elevetor: " + column.id + " [" + bestFit.id + "]" + " Position: " + bestFit.position + " to RC");
+            Console.WriteLine("- Select elevetor: " + column.id + " [" + bestFit.id + "]" + " Position: " + bestFit.position + " to RC");
             bestFit.doors.openDoor();
 
             if (bestFit.safetyFirst(bestFit.weightmax, bestFit.sensor))
@@ -545,9 +547,9 @@ namespace Commercial_Controller
 
             foreach (Column column in mainBattery.columnList)
             {
-                Console.WriteLine("Column  " + column.id + " -- Floors in service =  " + String.Join(" | ", column.floorList));
+                Console.WriteLine("Column  " + column.id + " -- Floors in service =  " + String.Join("| ", column.floorList));
             }
-
+            Console.WriteLine("\n");
             // ------------------------------ Testing Section -----------------------------------
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Red;
