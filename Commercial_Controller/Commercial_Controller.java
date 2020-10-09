@@ -285,8 +285,8 @@ class Battery {
 // RatingComparator: Compare to object elevator based on rating
 class RatingComparator implements Comparator<Elevator> {
     @Override
-    public int compare(Elevator o1, Elevator o2) {
-        return Integer.compare(o1.getRating(), o2.getRating());
+    public int compare(Elevator e1, Elevator e2) {
+        return Integer.compare(e1.getRating(), e2.getRating());
     }
 }
 
