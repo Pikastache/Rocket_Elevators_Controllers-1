@@ -387,7 +387,7 @@ namespace Commercial_Controller
                 }
                 // Console.WriteLine("Elevator " + BestColumn.Id + E.Id + " Direction= " + E.Direction + "| CurrentFloor = " + E.ElevatorCurrentFloor + "| NextStop  = " + E.ElevatorNextStop);
             }
-            // BestFit : soit le plus proche dans les GoodElevators  sinon dans les PossibleElevators
+
             if (elevatorsInMvtList.Count > 0)
             {
                 // Calculate rating(score) and sort the list 

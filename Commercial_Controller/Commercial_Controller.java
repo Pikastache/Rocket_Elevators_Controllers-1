@@ -344,8 +344,7 @@ class Column {
             }
 
         }
-        // BestFit : soit le plus proche dans les GoodElevators sinon dans les
-        // PossibleElevators
+
         if (!elevatorsInMvtList.isEmpty()) {
             // Calculate rating(score) and sort the list
             // return the first one
