@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\Commercial_Controller.csproj": {}
+    "D:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\Commercial_Controller.csproj": {}
   },
   "projects": {
-    "d:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\Commercial_Controller.csproj": {
+    "D:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\Commercial_Controller.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\Commercial_Controller.csproj",
+        "projectUniqueName": "D:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\Commercial_Controller.csproj",
         "projectName": "Commercial_Controller",
-        "projectPath": "d:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\Commercial_Controller.csproj",
+        "projectPath": "D:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\Commercial_Controller.csproj",
         "packagesPath": "C:\\Users\\saade\\.nuget\\packages\\",
-        "outputPath": "d:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\obj\\",
+        "outputPath": "D:\\CodeBoxx\\Odyssey\\Rocket_Elevators_Controllers\\Commercial_Controller\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\saade\\AppData\\Roaming\\NuGet\\NuGet.Config",

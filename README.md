@@ -78,7 +78,7 @@ dotnet run
 
 ## 📽️ Video demo:
 
-<a href="https://vimeo.com/464412061" target="_blank"> Link to video demo (Vimeo): Js, Python and Ruby implementation</a>
+<a href="https://youtu.be/LkEXhnPJzA0" target="_blank"> Link to video demo (Youtube): Implementation in C#, GO Lang and Java of the commercial controller algorithm</a>
 
 <h2>Illustration:</h2>
 
