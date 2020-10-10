@@ -176,7 +176,7 @@ func (battery *Battery) getColumn(destination int) *Column {
 	return &BestColumn
 }
 
-// findBestElevator return the best fit elevator for assignElevator
+// findBestElevator return the best fit elevator for assignElevator method
 func (battery *Battery) findBestElevator(column Column, RequestedFloor int) *Elevator {
 	var elevatorsInMvtList, elevatorIdleList []Elevator
 

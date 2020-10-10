@@ -368,6 +368,7 @@ class Column {
             Collections.sort(elevatorIdleList, new RatingComparator());
             bestFit = elevatorIdleList.get(0);
         } else {
+
             /************************************************
              * If no 1. best elevator on mvt 2. best nearest Idle ==> take the nearest
              * elevator when he become availlable
